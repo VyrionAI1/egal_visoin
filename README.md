@@ -3,6 +3,9 @@
 
 EagleVision is a high-performance system designed for real-time monitoring of construction equipment. It combines deep learning for object detection, advanced temporal heatmap analysis, and a specialized secondary YOLO classification model to distinguish between stationary equipment and complex articulated motion (like digging, swinging, and dumping).
 
+## 🧪 Model Training (Google Colab)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1v10q56t3xePM5d2VELDXCam7t2kToET0?usp=sharing)
 ## 📸 Output Preview
 
 ![EagleVision Output](out/background.jpg)
@@ -11,6 +14,10 @@ EagleVision is a high-performance system designed for real-time monitoring of co
 ## 🎥 Demonstration Video
 
 [![EagleVision Demo Video](https://img.youtube.com/vi/ejC5qRzuI4Q/maxresdefault.jpg)](https://youtu.be/ejC5qRzuI4Q)
+
+
+
+The model training notebook is available on Google Colab. It walks through the full training pipeline for the activity classification and detection models used in EagleVision.
 
 ## 🚀 Key Features
 
