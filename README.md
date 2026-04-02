@@ -89,6 +89,6 @@ Transitioning from standard bounding boxes and region heatmaps to full structura
 - This unlocks **deterministic** activity classification (e.g. true "arm-only" motion). Instead of classifying a cropped image, the pipeline will define "Digging" strictly by the kinetic angles and extension velocity of the tracked mechanical joints.
 
 ### 2. Instance Segmentation for Dump Trucks
-Upgrading dump truck tracking to **Instance Segmentation** masks (e.g., YOLOv8-seg).
+Upgrading dump truck tracking to **Instance Segmentation** masks (e.g., YOLO26-seg).
 - Pixel-perfect masking solves the "Class Overlap" limitations when trucks interact closely with active excavators during loading phases.
 - Segmentation prevents motion bleed, ensuring that excavator bucket movements passing perfectly *in front* of a stationary truck body aren't incorrectly flagged as the truck itself moving.
