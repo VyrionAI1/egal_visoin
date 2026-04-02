@@ -64,3 +64,8 @@ docker-compose up --build
 
 ## 📐 Technical Methodology
 EagleVision employs a dual-stage architecture. By using a fast YOLO detector paired with BoT-SORT's resilient motion compensator, bounding boxes are reliably anchored. Instead of forcing heavy logic into one layer, Eagle Vision isolates complex poses into a distinct sub-classifier (`classfy.pt`), while maintaining algorithmic speed through mathematical temporal heatmaps that preemptively filter out "Waiting" machines from computation entirely.
+
+## ⚠️ Proof of Concept Limitations
+Please note that this project is intended as a **Proof of Concept**. The current pipeline has some known limitations:
+- **Camera Movement**: System performance and activity classification accuracy may degrade significantly if the camera is actively moving or vibrating.
+- **Class Overlap/Intersection**: When there is intersection or heavy overlap between "moving" and "waiting" classes, or complex interactions between multiple machines, bounding box accuracy and overall detection accuracy can be negatively impacted.
