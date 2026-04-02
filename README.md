@@ -1,6 +1,14 @@
-# EagleVision: Construction Equipment Monitoring & Analytics
+# EagleVision: Construction Equipment Monitoring & Analytics
 
 EagleVision is a high-performance system designed for real-time monitoring of construction equipment. It combines deep learning for object detection, advanced temporal heatmap analysis, and a specialized secondary YOLO classification model to distinguish between stationary equipment and complex articulated motion (like digging, swinging, and dumping).
+
+## 🎥 Demonstration Video
+
+[![EagleVision Demo Video](https://img.youtube.com/vi/ejC5qRzuI4Q/maxresdefault.jpg)](https://youtu.be/ejC5qRzuI4Q)
+
+## 📸 Output Preview
+
+![EagleVision Output](out/background.jpg)
 
 ## 🚀 Key Features
 
@@ -69,3 +77,16 @@ EagleVision employs a dual-stage architecture. By using a fast YOLO detector pai
 Please note that this project is intended as a **Proof of Concept**. The current pipeline has some known limitations:
 - **Camera Movement**: System performance and activity classification accuracy may degrade significantly if the camera is actively moving or vibrating.
 - **Class Overlap/Intersection**: When there is intersection or heavy overlap between "moving" and "waiting" classes, or complex interactions between multiple machines, bounding box accuracy and overall detection accuracy can be negatively impacted.
+
+## 🛣️ Commercial Roadmap & Future Analytics Pipeline
+To transition from the current region-based motion and classification prototype to an robust commercial product, the following advanced vision techniques are planned for the immediate roadmap:
+
+### 1. Excavator Keypoint Tracking (Pose Estimation)
+Transitioning from standard bounding boxes and region heatmaps to full structural **Keypoint Tracking**. 
+- By tracking specific joints on the excavator (cab, boom, stick, bucket), the system will precisely calculate the geometry of the articulated arm over time.
+- This unlocks **deterministic** activity classification (e.g. true "arm-only" motion). Instead of classifying a cropped image, the pipeline will define "Digging" strictly by the kinetic angles and extension velocity of the tracked mechanical joints.
+
+### 2. Instance Segmentation for Dump Trucks
+Upgrading dump truck tracking to **Instance Segmentation** masks (e.g., YOLOv8-seg).
+- Pixel-perfect masking solves the "Class Overlap" limitations when trucks interact closely with active excavators during loading phases.
+- Segmentation prevents motion bleed, ensuring that excavator bucket movements passing perfectly *in front* of a stationary truck body aren't incorrectly flagged as the truck itself moving.

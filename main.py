@@ -92,7 +92,9 @@ class ConstructionAnalyzer:
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = int(cap.get(cv2.CAP_PROP_FPS))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_path = f"output_bytetrack_{timestamp}.mp4"
+        out_dir = Path("out")
+        out_dir.mkdir(exist_ok=True)
+        out_path = f"out/output_bytetrack_{timestamp}.mp4"
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         # Splitting view: color frame + heatmap = 2 * width
         video_writer = cv2.VideoWriter(out_path, fourcc, fps, (w * 2, h))
@@ -228,8 +230,9 @@ class ConstructionAnalyzer:
                         if voted_status == "Inactive":
                             label = f"{obj_name} {obj_id}: {voted_activity} (Inactive)"
                             
+                        # Blue color in BGR is (255, 0, 0)
                         cv2.putText(frame, label, (x1, y1-5), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
                 # 7. Draw Top Summary Header (Cumulative time)
                 self.draw_summary(frame, fps)
@@ -251,7 +254,7 @@ class ConstructionAnalyzer:
 
                 cv2.imshow("EagleVision - BoT-SORT Analysis", combined_view)
                 video_writer.write(combined_view)
-                cv2.imwrite("current_frame.jpg", combined_view)
+                cv2.imwrite("out/current_frame.jpg", combined_view)
                 
                 if cv2.waitKey(1) & 0xFF == ord('q'): break
                 if producer: producer.poll(0)
@@ -310,7 +313,7 @@ class ConstructionAnalyzer:
 
 if __name__ == "__main__":
     # Auto-run the GUI in a separate process for real-time control
-    gui_process = subprocess.Popen([sys.executable, "gui.py"])
+    gui_process = subprocess.Popen([sys.executable, "setting.py"])
     
     try:
         analyzer = ConstructionAnalyzer()

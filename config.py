@@ -25,7 +25,7 @@ TRACK_BUFFER = 100000          # How many frames to remember lost objects
 MATCH_THRESH = 0.8         # Matching threshold
 DEVICE=0
 # --- YOLO Settings ---
-MODEL_PATH = 'models/best2.pt'
+MODEL_PATH = 'models/best.pt'
 CLASSIFICATION_MODEL_PATH = 'models/classfy.pt'
 TRACKED_CLASSES = [0, 1] # COCO / Custom indices: Excavators (0), Trucks (1)
 

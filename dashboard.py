@@ -30,9 +30,9 @@ while True:
     # 1. Update Video Feed Frame
     with video_placeholder.container():
         st.subheader("Live Processed Video Feed")
-        if os.path.exists("current_frame.jpg"):
+        if os.path.exists("out/current_frame.jpg"):
             try:
-                st.image("current_frame.jpg", width='stretch')
+                st.image("out/current_frame.jpg", width='stretch')
             except Exception:
                 pass # Skip drawing this frame if OpenCV is actively writing to it
         else:
