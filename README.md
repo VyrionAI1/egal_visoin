@@ -1,14 +1,16 @@
-# EagleVision: Construction Equipment Monitoring & Analytics
+
+# EagleVision: Construction Equipment Monitoring & Analytics
 
 EagleVision is a high-performance system designed for real-time monitoring of construction equipment. It combines deep learning for object detection, advanced temporal heatmap analysis, and a specialized secondary YOLO classification model to distinguish between stationary equipment and complex articulated motion (like digging, swinging, and dumping).
-
-## 🎥 Demonstration Video
-
-[![EagleVision Demo Video](https://img.youtube.com/vi/ejC5qRzuI4Q/maxresdefault.jpg)](https://youtu.be/ejC5qRzuI4Q)
 
 ## 📸 Output Preview
 
 ![EagleVision Output](out/background.jpg)
+
+
+## 🎥 Demonstration Video
+
+[![EagleVision Demo Video](https://img.youtube.com/vi/ejC5qRzuI4Q/maxresdefault.jpg)](https://youtu.be/ejC5qRzuI4Q)
 
 ## 🚀 Key Features
 
