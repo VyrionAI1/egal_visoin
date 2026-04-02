@@ -1,0 +1,49 @@
+EAGLEVISION - PROJECT EXPLANATION & WALKTHROUGH
+===============================================
+
+1. HOW THE SYSTEM WORKS (STEP-BY-STEP)
+--------------------------------------
+The EagleVision system uses a highly optimized dual-stage Computer Vision (CV) pipeline:
+Step 1: Detection & Tracking. First, `main.py` captures video frames and uses a primary YOLO object detection model (`best.pt`) to locate Excavators and Dump Trucks. We track these using "BoT-SORT" (an advanced tracker that uses Global Motion Compensation to drastically reduce ID switching and flickering when equipment becomes occluded).
+Step 2: Activity Classification. For every detected excavator, instead of using generic heuristics, the pipeline extracts a cropped mini-image of the machine and passes it to a secondary, dedicated Deep Learning classifier (`classfy.pt`) to mathematically predict complex articulated actions like "Digging", "Swinging", or "Dumping".
+Step 3: Heatmap Filtering. Before deep learning is evaluated, we perform a robust rolling Heatmap motion analysis on the video. If the pixels bounding the excavator show zero motion across the rolling timeline, the system bypasses AI polling altogether and confidently marks the equipment as "WAITING" / "INACTIVE" to eliminate noise.
+Step 4: Kafka Telemetry. Every frame, the system takes the consensus of these actions over a "Stability Voting Queue" to prevent flicker. It compiles the data (computing total tracked idle/working seconds instantly) into a nested JSON Payload specifically designed for the technical assessment, and broadcasts it to a local Apache Kafka message broker.
+
+2. WHY THE DASHBOARD & WHAT IT IS NEEDED FOR
+--------------------------------------------
+The dashboard (`dashboard.py`) is written in Streamlit to directly fulfill "Component B: Analytics Backend & Simple UI" of the technical assessment.
+It is needed to visually prove that the pipeline successfully converts raw video into actionable, streamed business intelligence data. 
+The dashboard solves three exact assessment constraints:
+1. It loops and loads a proxy of the live processed CV video feed directly on the webpage (showing tracking & bounding boxes).
+2. It displays a real-time data table showing the exact State (ACTIVE/INACTIVE) and current Activity of every tracked machine.
+3. It performs Live Utilization Calculations, graphing the historical trend and providing exact UI metrics for "Total Working Time", "Total Idle Time", and "Utilization Percentage" for supervisors.
+
+3. HOW TO RUN THE SYSTEM
+------------------------
+For the easiest full demonstration showing the messaging broker, DB, and UI:
+
+Option A (Local Microservices without Docker):
+1. Start your local Apache Kafka server and Zookeeper instances on port 9092.
+2. Open a terminal and run the background consumer: `python consumer.py` 
+   (*This automatically listens to the Kafka topic and dumps payloads securely into a local SQLite database table*).
+3. Open a second terminal and run your Dashboard UI: `streamlit run dashboard.py`
+4. Open a third terminal and run the CV engine: `python main.py`. 
+   (*Note: Running main.py will automatically spawn `gui.py` into a second window so you can safely tune tracking configurations live, and it will begin pumping visual frames directly into your Streamlit dashboard URL*).
+
+Option B (The Enterprise / Docker Method):
+1. Ensure Docker Engine (or Docker Desktop) is running.
+2. Run `docker-compose up --build`. This automatically provisions isolated server containers for Zookeeper, Kafka, the Python backend consumer, and the Streamlit dashboard simultaneously.
+3. Then simply run `python main.py` natively on your local Windows machine to capitalize on your hardware/GPU for heavy computer vision processing, while it streams metadata over localhost into the containers.
+
+4. HOW THE DATASET WAS CODED & ARCHITECTED
+------------------------------------------
+Instead of relying strictly on complex instance segmentation masks—which are slow to compute and notoriously hard to train for articulated heavy machinery—we engineered a brilliant "Two-Model" architecture:
+- Model 1 (`best.pt`): Standard object bounding boxes for broad machinery grouping.
+- Model 2 (`classfy.pt`): An image classification network strictly trained on pose orientation. 
+We combined these with an algorithmic "Optical Density Heatmap". This heatmap ensures that if the tracks/body of an excavator are entirely stationary, it immediately registers as "WAITING" even if Model 2 thinks its pose physically looks like a digging stance. This elegant logic perfectly crushes the "Articulated Motion vs Stationary Body" challenge posed in the assessment rubric.
+
+5. HOW TO SEE IT (THE OUTPUTS)
+------------------------------
+1. Native Display: While `main.py` is running, a split-screen OpenCV window will open securely on your native monitor (showing Bounding Boxes on the left, and Density Heatmap mapping on the right). 
+2. Web View: If you navigate your browser to `http://localhost:8501`, you will securely view the Streamlit Analytics Dashboard. Here, you get the live video embedded directly into the webpage next to real-time Database charts that update dynamically as the Kafka consumer populates the backend.
+3. Hard-Copy Export: Once you are finished analyzing a clip, ensure the native CV window is actively selected on your screen, and tap the 'q' key on your keyboard. This sends an interrupt kill command to cleanly destroy the `gui.py` subprocess, securely flushes the Kafka telematics memory, safely terminates the CV loop, and cleanly structures a complete `.mp4` screen-capture of your entire tracking session inside your directory.

@@ -1,0 +1,9 @@
+ultralytics
+opencv-python
+numpy
+confluent-kafka
+sqlalchemy
+psycopg2-binary
+streamlit
+pandas
+matplotlib
