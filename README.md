@@ -13,7 +13,7 @@ EagleVision is a high-performance system designed for real-time monitoring of co
 
 ## 🎥 Demonstration Video
 
-[![EagleVision Demo Video](https://img.youtube.com/vi/ejC5qRzuI4Q/maxresdefault.jpg)](https://youtu.be/ejC5qRzuI4Q)
+[![EagleVision Demo Video](out/background.jpg)](https://www.youtube.com/watch?v=7ekC4IPvhvU&feature=youtu.be)
 
 The model training notebook is available on Google Colab. It walks through the full training pipeline for the activity classification and detection models used in EagleVision.
 
