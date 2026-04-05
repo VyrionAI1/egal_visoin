@@ -92,15 +92,20 @@ The project is organized into a modular core and supporting microservices:
 ## 🏁 Getting Started
 
 ### Quick Start
+A
 1. **Prepare Environment**:
    ```bash
    pip install -r requirements.txt
    ```
-2. **Run the Full Pipeline**:
+2. **Run the Pipeline**:
    ```bash
    python main.py
    ```
-3. **Run High-Speed Tracking Only**:
+3.**run Full System** :
+     ```bash
+   run_all.bat
+   ```
+B. **Run High-Speed Tracking Only**:
    ```bash
    python main_track.py
    ```
