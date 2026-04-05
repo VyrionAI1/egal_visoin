@@ -51,22 +51,48 @@ The model training notebook is available on Google Colab. It walks through the f
 
 ## 🛠 Project Structure
 
-- `main.py`: The core processor. Handles detection, tracking, activity classification, and Kafka streaming.
-- `main_track.py`: High-speed tracking-only entry point with optimized ID stabilization.
-- `setting.py`: The Control Panel GUI for live parameter tuning.
-- `config.py` & `settings.json`: System-wide parameters and live state management.
-- `botsort.yaml`, `deepocsort.yaml`, `strongsort.yaml`: Specialized tracker configurations.
-- `consumer.py` & `database.py`: The telemetry backbone for persisting Kafka streams.
-- `dashboard.py`: The analytics Streamlit app.
+The project is organized into a modular core and supporting microservices:
+
+- **Core Processors**:
+  - `main.py`: The primary engine. orchestrates YOLO detection, specialized BoT-SORT/StrongSORT/Deep-OC-SORT tracking, activity heatmapping, and real-time Kafka telemetry.
+  - `main_track.py`: Optimized, high-performance tracking-only entry point with anti-ID-switch stabilization layer.
+- **System Control & UI**:
+  - `setting.py`: Interactive GUI Control Panel for real-time parameter tuning (confidence thresholds, motion sensitivity, tracker buffers).
+  - `dashboard.py`: Streamlit-driven analytics dashboard for real-time fleet activity monitoring and historical utilization reports.
+- **Configuration & Persistence**:
+  - `config.py` & `settings.json`: Centralized control logic for system parameters and live state persistence.
+- **Tracker Configuration Subsystem**:
+  - `botsort.yaml`: High-stability Global Motion Compensation (GMC) parameters.
+  - `bytetrack.yaml`: High-speed detection-only tracking without appearance association.
+  - `deepocsort.yaml`: Robust occlusion handling for non-linear equipment motion.
+  - `strongsort.yaml`: Heavy ReID (Feature Appearance) based identity persistence.
+- **Telemetry & Backend**:
+  - `consumer.py`: Kafka consumer service to ingest and process real-time status updates.
+  - `database.py`: ORM management for persisting analytics into SQLite (dev) or PostgreSQL (prod).
+- **Inference & Models**:
+  - `models/`: Pre-trained weights for heavy equipment detection (`best.pt`) and excavator activity classification (`classfy.pt`).
+- **DevOps & Deployment**:
+  - `Dockerfile` & `docker-compose.yml`: Comprehensive container stack containing Kafka, Zookeeper, and Database services.
+  - `run_all.bat`: One-click utility script to launch the full microservices stack and core pipeline.
+
+## ⚙️ Requirements
+
+### 💻 System Specifications
+- **Python**: 3.9+ (Active LTS)
+- **OS**: Windows / Linux (Docker-ready recommended)
+- **GPU**: NVIDIA GPU with 8GB+ VRAM (Recommended for real-time multi-stream inference).
+
+### 📦 Key Dependencies
+- `ultralytics`: YOLOv11 detection and tracking backbone.
+- `confluent-kafka`: Distributed streaming for real-time telemetry.
+- `streamlit`: High-performance analytics visualization.
+- `sqlalchemy`: Database abstraction and lifecycle management.
+- `opencv-python`: Core video stream processing and GUI controls.
 
 ## 🏁 Getting Started
 
-### Prerequisites
-- Python 3.9+
-- Docker (optional, for full microservices stack)
-
 ### Quick Start
-1. **Install dependencies**:
+1. **Prepare Environment**:
    ```bash
    pip install -r requirements.txt
    ```
