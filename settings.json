@@ -3,7 +3,10 @@
     "MOTION_THRESHOLD": 4,
     "DILATION_ITERATIONS": 1,
     "WAITING_INTENSITY": 10.0,
-    "VOTING_WINDOW": 3,
-    "TRACK_BUFFER": 3000,
-    "MATCH_THRESH": 0.8
+    "VOTING_WINDOW": 1,
+    "TRACK_BUFFER": 127600,
+    "MATCH_THRESH": 0.1,
+    "YOLO_CONF": 0.25,
+    "YOLO_IOU": 0.1,
+    "TRACKER_TYPE": "deepocsort.yaml"
 }

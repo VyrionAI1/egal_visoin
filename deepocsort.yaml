@@ -1,0 +1,26 @@
+# ═══════════════════════════════════════════════════════════════════
+# EagleVision — Deep-OC-SORT Configuration
+# OC-SORT is highly robust to occlusion and non-linear motion.
+# ═══════════════════════════════════════════════════════════════════
+
+tracker_type: deepocsort
+
+# ── Detection Thresholds ────────────────────────────────────────────
+track_high_thresh: 0.30
+track_low_thresh: 0.1
+new_track_thresh: 0.7
+
+# ── Track Memory ────────────────────────────────────────────────────
+track_buffer: 5000            # Total frames to keep a lost track in memory
+
+# ── Matching & Association ──────────────────────────────────────────
+match_thresh: 0.7
+gmc_method: sift
+proximity_thresh: 0.5
+appearance_thresh: 0.5
+
+# ── Deep-OC-SORT Specific ──────────────────────────────────────────
+with_reid: True
+model: auto
+fuse_score: True
+# Uses Observation-Centric matching to recover IDs after occlusion gaps.

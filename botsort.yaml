@@ -1,12 +1,13 @@
-# Optimized by EagleVision GUI
+# Optimized for High-End GPU Accuracy
 tracker_type: botsort
-track_high_thresh: 0.5
+track_high_thresh: 0.35      # Lowered slightly to pick up tracks earlier
 track_low_thresh: 0.1
-new_track_thresh: 0.6
-track_buffer: 3000
-match_thresh: 0.8
+new_track_thresh: 0.4       # Easier to start a track
+track_buffer: 127600
+match_thresh: 0.1
 gmc_method: sparseOptFlow
 proximity_thresh: 0.5
-appearance_thresh: 0.25
-with_reid: False
+appearance_thresh: 0.5      # Increased for better ReID matching
+with_reid: True
+model: auto                 # Required by ultralytics >= 8.3.x for ReID model selection
 fuse_score: True

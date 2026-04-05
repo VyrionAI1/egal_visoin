@@ -1,0 +1,27 @@
+# ═══════════════════════════════════════════════════════════════════
+# EagleVision — StrongSORT Configuration (Accuracy Optimized)
+# StrongSORT combines OSNet-based ReID with enhanced Kalman filters.
+# ═══════════════════════════════════════════════════════════════════
+
+tracker_type: strongsort
+
+# ── Detection Thresholds ────────────────────────────────────────────
+track_high_thresh: 0.40
+track_low_thresh: 0.1
+new_track_thresh: 0.8        # Strict newly created IDs
+
+# ── Track Memory ────────────────────────────────────────────────────
+track_buffer: 5000            # Total frames to keep a lost track in memory
+# StrongSORT is highly reliant on appearance persistence.
+
+# ── Matching & Association ──────────────────────────────────────────
+match_thresh: 0.8            # Appearance-based matching strictness
+gmc_method: sift             # Robust camera motion compensation
+proximity_thresh: 0.6
+appearance_thresh: 0.7
+
+# ── Parameters specific to StrongSORT++ ────────────────────────────
+with_reid: True
+model: auto
+fuse_score: True
+# Enhanced reid gallery and motion integration

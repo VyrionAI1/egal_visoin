@@ -13,7 +13,10 @@ def load_settings():
         "WAITING_INTENSITY": 10.0,
         "VOTING_WINDOW": 3,
         "TRACK_BUFFER": 3000,
-        "MATCH_THRESH": 0.8
+        "MATCH_THRESH": 0.8,
+        "YOLO_CONF": 0.25,
+        "YOLO_IOU": 0.1,
+        "TRACKER_TYPE": "botsort.yaml"
     }
     if os.path.exists(SETTINGS_FILE):
         try:
@@ -23,20 +26,20 @@ def load_settings():
         except Exception:
             pass
     return defaults
-
 def save_tracker_yaml(buffer, thresh):
     """Overwrite botsort.yaml with new parameters."""
-    content = f"""# Optimized by EagleVision GUI
+    content = f"""# Optimized for High-End GPU Accuracy
 tracker_type: botsort
-track_high_thresh: 0.5
+track_high_thresh: 0.35      # Lowered slightly to pick up tracks earlier
 track_low_thresh: 0.1
-new_track_thresh: 0.6
+new_track_thresh: 0.4       # Easier to start a track
 track_buffer: {int(buffer)}
 match_thresh: {float(thresh)}
 gmc_method: sparseOptFlow
 proximity_thresh: 0.5
-appearance_thresh: 0.25
-with_reid: False
+appearance_thresh: 0.5      # Increased for better ReID matching
+with_reid: True
+model: auto                 # Required by ultralytics >= 8.3.x for ReID model selection
 fuse_score: True
 """
     with open("botsort.yaml", "w") as f:
@@ -49,68 +52,106 @@ def save_settings(settings):
 class TuningGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("EagleVision - Heatmap Control Panel")
-        self.root.geometry("500x750")
-        self.root.configure(bg='#f0f0f0')
+        self.root.title("EagleVision - Control Panel")
+        self.root.geometry("420x680")
+        self.root.configure(bg='#f7f7f7')
         
         self.settings = load_settings()
         self.controls = {}
         
         self.create_widgets()
-
+ 
     def create_widgets(self):
-        # Header
-        header = tk.Label(self.root, text="EagleVision Heatmap Tuner", font=('Helvetica', 16, 'bold'), bg='#f0f0f0', fg='#333')
-        header.pack(pady=10)
-
-        # Main Container
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.pack(fill="both", expand=True)
-
-        # 1. Motion & Heatmap Group
-        motion_group = ttk.LabelFrame(main_frame, text=" 1. Motion & Heatmap Sensitivity ", padding="10")
-        motion_group.pack(fill="x", pady=5)
-        
-        self.add_slider(motion_group, "MOTION_THRESHOLD", "Motion Threshold", 1, 50, 1, True, "Binary sensitivity.")
-        self.add_slider(motion_group, "DILATION_ITERATIONS", "Dilation Blur", 0, 5, 1, True, "Size of motion clusters.")
-        self.add_slider(motion_group, "BUFFER_SIZE", "Heatmap History", 5, 150, 1, True, "Rolling frames to average.")
-
-        # 2. Activity Logic Group
-        activity_group = ttk.LabelFrame(main_frame, text=" 2. Activity Classification (Intensity Logic) ", padding="10")
-        activity_group.pack(fill="x", pady=5)
-        
-        self.add_slider(activity_group, "WAITING_INTENSITY", "Waiting Floor", 0, 150, 1, False, "Min pixels to be 'Active'.")
-
-        # 3. Stability Group
-        track_group = ttk.LabelFrame(main_frame, text=" 3. Stability & ID Optimization ", padding="10")
-        track_group.pack(fill="x", pady=5)
-        
-        self.add_slider(track_group, "VOTING_WINDOW", "Stability Window", 1, 30, 1, True, "Smoother labels (counter-flicker).")
-        self.add_slider(track_group, "TRACK_BUFFER", "ID Memory (Frames)", 100, 5000, 100, True, "Keep ID alive if hidden.")
-        self.add_slider(track_group, "MATCH_THRESH", "Match Leniency", 0.1, 1.0, 0.05, False, "BoT-SORT strictness.")
-
-        # Quick Guide
-        info_frame = ttk.LabelFrame(main_frame, text=" Heatmap Guide ", padding="10")
-        info_frame.pack(fill="both", expand=True, pady=10)
-        
-        guide_text = (
-            "• IF TOO MUCH NOISE: Increase 'Motion Threshold'.\n"
-            "• IF LABELS FLICKER: Increase 'Stability Window'.\n\n"
-            "Settings are saved instantly to settings.json and botsort.yaml."
+        # ── Scrollable Container ─────────────────────────────────────────────
+        canvas = tk.Canvas(self.root, bg='#f7f7f7', highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = ttk.Frame(canvas)
+ 
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-        tk.Label(info_frame, text=guide_text, justify="left", wraplength=450, font=('Helvetica', 9)).pack()
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw", width=400)
+        canvas.configure(yscrollcommand=scrollbar.set)
+ 
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
 
-        ttk.Button(self.root, text="Reset to Factory Defaults", command=self.reset_defaults).pack(pady=10)
+        # Header
+        header = tk.Label(self.scrollable_frame, text="EagleVision Tuner", font=('Helvetica', 12, 'bold'), bg='#f7f7f7', fg='#222')
+        header.pack(pady=5)
+ 
+        # 1. Motion & Heatmap Group
+        motion_group = ttk.LabelFrame(self.scrollable_frame, text=" 1. Motion Sensitivity ", padding="5")
+        motion_group.pack(fill="x", pady=2, padx=5)
+        
+        self.add_slider(motion_group, "MOTION_THRESHOLD", "Threshold", 1, 50, 1, True, "Sensitivity.")
+        self.add_slider(motion_group, "DILATION_ITERATIONS", "Dilation", 0, 5, 1, True, "Cluster size.")
+        self.add_slider(motion_group, "BUFFER_SIZE", "History", 5, 150, 1, True, "Heatmap frames.")
+ 
+        # 2. Activity Logic Group
+        activity_group = ttk.LabelFrame(self.scrollable_frame, text=" 2. Activity Logic ", padding="5")
+        activity_group.pack(fill="x", pady=2, padx=5)
+        
+        self.add_slider(activity_group, "WAITING_INTENSITY", "Waiting Floor", 0, 150, 1, False, "Active min.")
+ 
+        # 3. Stability Group
+        track_group = ttk.LabelFrame(self.scrollable_frame, text=" 3. ID Stability ", padding="5")
+        track_group.pack(fill="x", pady=2, padx=5)
+        
+        self.add_slider(track_group, "VOTING_WINDOW", "Stability", 1, 30, 1, True, "Anti-flicker.")
+        self.add_slider(track_group, "TRACK_BUFFER", "Memory", 100, 200000, 100, True, "Lost frames.")
+        self.add_slider(track_group, "MATCH_THRESH", "Leniency", 0.1, 1.0, 0.05, False, "Association.")
+ 
+        # 4. YOLO Detection Group
+        yolo_group = ttk.LabelFrame(self.scrollable_frame, text=" 4. YOLO Detections ", padding="5")
+        yolo_group.pack(fill="x", pady=2, padx=5)
+ 
+        self.add_slider(yolo_group, "YOLO_CONF", "Conf", 0.01, 1.0, 0.01, False, "Detection.")
+        self.add_slider(yolo_group, "YOLO_IOU", "IoU", 0.01, 0.9, 0.01, False, "Overlap.")
+ 
+        # 5. Tracker Selection Group
+        tracker_group = ttk.LabelFrame(self.scrollable_frame, text=" 5. Tracking Algorithm ", padding="5")
+        tracker_group.pack(fill="x", pady=2, padx=5)
+        
+        self.tracker_var = tk.StringVar(value=self.settings.get("TRACKER_TYPE", "botsort.yaml"))
+        
+        s = ttk.Style()
+        s.configure('Small.TRadiobutton', font=('Helvetica', 8))
+        
+        ttk.Radiobutton(
+            tracker_group, text="BoT-SORT (Balance)", 
+            variable=self.tracker_var, value="botsort.yaml",
+            command=self.update_tracker_type, style='Small.TRadiobutton'
+        ).pack(anchor="w")
+        
+        ttk.Radiobutton(
+            tracker_group, text="StrongSORT++ (Accuracy)", 
+            variable=self.tracker_var, value="strongsort.yaml",
+            command=self.update_tracker_type, style='Small.TRadiobutton'
+        ).pack(anchor="w")
+ 
+        ttk.Radiobutton(
+            tracker_group, text="Deep-OC-SORT (Robust Occlusion)", 
+            variable=self.tracker_var, value="deepocsort.yaml",
+            command=self.update_tracker_type, style='Small.TRadiobutton'
+        ).pack(anchor="w")
+
+        # Buttons
+        ttk.Button(self.scrollable_frame, text="Reset to Defaults", command=self.reset_defaults).pack(pady=10)
+        
+        # Small Footer
+        tk.Label(self.scrollable_frame, text="Instant Live Tuning Active", font=('Helvetica', 7, 'italic'), fg='gray').pack()
 
     def add_slider(self, parent, key, label, min_val, max_val, res, is_int, note):
         container = ttk.Frame(parent)
-        container.pack(fill="x", pady=2)
+        container.pack(fill="x", pady=1)
         
         lbl_frame = ttk.Frame(container)
         lbl_frame.pack(fill="x")
         
-        tk.Label(lbl_frame, text=label, font=('Helvetica', 10, 'bold')).pack(side="left")
-        tk.Label(lbl_frame, text=note, font=('Helvetica', 8, 'italic'), fg='gray').pack(side="left", padx=10)
+        tk.Label(lbl_frame, text=label, font=('Helvetica', 9, 'bold')).pack(side="left")
+        tk.Label(lbl_frame, text=note, font=('Helvetica', 8), fg='gray').pack(side="left", padx=5)
         
         val_var = tk.DoubleVar(value=self.settings.get(key, 0))
         
@@ -121,7 +162,7 @@ class TuningGUI:
         )
         slider.pack(side="left", fill="x", expand=True, padx=5)
         
-        label_val = ttk.Label(container, text=f"{val_var.get()}", width=6)
+        label_val = ttk.Label(container, text=f"{val_var.get()}", width=6, font=('Helvetica', 8))
         label_val.pack(side="right")
         
         self.controls[key] = (val_var, label_val)
@@ -141,6 +182,12 @@ class TuningGUI:
         val_var, label_val = self.controls[key]
         label_val.config(text=f"{value}")
 
+    def update_tracker_type(self):
+        new_type = self.tracker_var.get()
+        self.settings["TRACKER_TYPE"] = new_type
+        save_settings(self.settings)
+        print(f"[Settings] Switched tracker to: {new_type}")
+
     def reset_defaults(self):
         defaults = {
             "BUFFER_SIZE": 30,
@@ -149,7 +196,10 @@ class TuningGUI:
             "WAITING_INTENSITY": 10.0,
             "VOTING_WINDOW": 3,
             "TRACK_BUFFER": 3000,
-            "MATCH_THRESH": 0.8
+            "MATCH_THRESH": 0.8,
+            "YOLO_CONF": 0.25,
+            "YOLO_IOU": 0.1,
+            "TRACKER_TYPE": "botsort.yaml"
         }
         self.settings = defaults
         save_settings(self.settings)
